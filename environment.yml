@@ -1,0 +1,27 @@
+name: coolblocks
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - numpy
+  - pandas
+  - pyarrow
+  - geopandas
+  - rasterio
+  - shapely
+  - scikit-learn
+  - lightgbm
+  - shap
+  - matplotlib
+  - pyyaml
+  - pystac-client
+  - planetary-computer
+  - stackstac
+  - streamlit
+  - folium
+  - pytest
+  - ruff
+  - pip
+  - pip:
+      - streamlit-folium
+      - -e .
