@@ -1,27 +1,52 @@
-# Small, pinned summer-2023 proof of concept; all paths are relative to project root.
+# Single source of truth for study area, dates, seeds and paths.
 seed: 42
+
 study_area:
   name: Long Beach, CA
-  unit: tract
-  place_geoid: "0643000"
-  county_fips: "037"
+  place_name: Long Beach       # matches NAME in the Census TIGER "place" file
+  unit: block_group
+  state_fips: "06"
+  county_fips: "037"           # Los Angeles County
+  tiger_year: 2023
+  min_land_fraction: 0.5       # drop block groups that are mostly water
+  # Fallback bounding box (lon_min, lat_min, lon_max, lat_max); the pipeline normally uses the
+  # bounds of the selected block groups instead.
+  bbox: [-118.25, 33.73, -118.07, 33.89]
+
 landsat:
   stac_url: https://planetarycomputer.microsoft.com/api/stac/v1
   collection: landsat-c2-l2
-  scene_ids:
-    - LC08_L2SP_041036_20230712_02_T1
-    - LC09_L2SP_041036_20230805_02_T1
-    - LC08_L2SP_041036_20230829_02_T1
+  platforms: [landsat-8, landsat-9]
+  months: [6, 7, 8, 9]         # summer only
+  years: [2021, 2022, 2023, 2024]
+  max_cloud_cover: 20          # percent, scene level
+  epsg: 32611                  # UTM zone 11N (covers Long Beach)
+  resolution: 30               # metres
+  min_clear_fraction: 0.5      # drop (unit, scene) rows with fewer usable pixels than this
+  mask_water: true             # exclude water pixels (NDWI > 0) from unit averages
+
 features:
-  predictors: [ndvi, ndbi, ndwi]
-  exclude_from_model: [lwir11, st_b10, lst_celsius]
-  min_valid_pixels: 30
-  min_valid_fraction: 0.5
+  indices: [ndvi, ndbi, ndwi]
+  static_layers: [nlcd_impervious, nlcd_tree_canopy]
+  exclude_from_model: [lwir11, st_b10]   # raw thermal bands would leak the target
+
 modeling:
-  target: lst_celsius
+  # lst_anomaly = LST minus the scene (day) mean: place effect only (recommended)
+  # lst_celsius  = raw LST: also needs date information (see use_scene_mean_feature)
+  target: lst_anomaly
+  use_scene_mean_feature: false   # allow scene_mean_lst as an input (only sensible for lst_celsius)
+  # unit_id  = hold out whole block groups
+  # tract_id = hold out whole tracts (stricter: block groups in a tract share SVI and are neighbors)
   group_column: unit_id
   n_splits: 5
-  models: [mean_baseline, linear, random_forest]
+  models: [mean_baseline, linear, random_forest, lightgbm]
+
+prioritization:
+  weights:
+    lst_mean: 0.5
+    svi_overall: 0.3
+    canopy_deficit: 0.2
+
 paths:
   raw: data/raw
   interim: data/interim
