@@ -37,6 +37,8 @@ make test lint
 
 Tests use explicitly artificial fixtures to check software behavior; reported scientific results
 come exclusively from the public environmental data. CI runs tests and lint without downloading scenes.
+App integration checks in `tests/test_streamlit_app.py` use the existing real outputs and simulated
+map clicks; they skip when local outputs are absent. The missing-data UI check always runs.
 
 ## How it works
 
@@ -56,7 +58,14 @@ come exclusively from the public environmental data. CI runs tests and lint with
 4. [`run_eval.py`](src/coolblocks/evaluation/run_eval.py) checks the spatial audit and recomputes
    pooled held-out metrics, then summarizes the selected model's errors by tract and date.
 5. [`streamlit_app.py`](app/streamlit_app.py) reads the outputs without training. Choose a date,
-   switch between observed LST and spatially held-out estimates, and compare two tracts.
+   start with spatially held-out temperature predictions, then switch to observed LST or
+   prediction error. Click a tract for its temperatures and signed error, or choose it from
+   the details dropdown. Use **Compare this tract** to start a two-tract comparison.
+   Predicted and observed maps share one fixed temperature scale across dates; error uses
+   a blue-to-red scale centered on zero (**predicted minus observed**). Model metrics,
+   spectral indices, data quality, limitations, and CSV downloads are in the collapsed
+   **About the model, data quality, and limitations** section. These are same-date
+   estimates, not forecasts.
 
 This keeps the original masking, spectral indices, model constructors, metrics, and spatial splitting.
 NLCD, demographic/SVI ingestion, prioritization, LightGBM, and intervention scenarios are outside
