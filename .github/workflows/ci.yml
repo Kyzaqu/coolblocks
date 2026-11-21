@@ -12,7 +12,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Install project and test dependencies
-        run: pip install -e .
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy pandas pyarrow scikit-learn pyyaml pytest ruff
+          pip install -e . --no-deps
       - run: ruff check src tests app
       - run: pytest
