@@ -14,7 +14,8 @@ from coolblocks.evaluation.metrics import regression_metrics
 from coolblocks.evaluation.splits import spatial_group_splits
 from coolblocks.models.registry import build_model
 
-NON_FEATURES = {"unit_id", "scene_id", "date"}
+# identifiers and bookkeeping columns that must never be used as model inputs
+NON_FEATURES = {"unit_id", "tract_id", "scene_id", "date", "platform", "n_clear_pixels", "pct_clear"}
 
 
 def run_cv(df: pd.DataFrame, cfg: dict) -> pd.DataFrame:
