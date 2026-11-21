@@ -24,15 +24,24 @@ TARGET_COLUMNS = {"lst_celsius", "lst_anomaly"}
 SCENE_MEAN = "scene_mean_lst"
 
 
-def feature_columns(df: pd.DataFrame, cfg: dict) -> list[str]:
-    m = cfg["modeling"]
-    exclude = NON_FEATURES | TARGET_COLUMNS | {m["target"]}
-    if not m.get("use_scene_mean_feature", False):
-        exclude = exclude | {SCENE_MEAN}
-    features = [c for c in df.columns if c not in exclude]
-    bad = forbidden_features(features, cfg["features"]["exclude_from_model"])
-    if bad:
-        raise ValueError(f"Leaky features present: {bad}")
+def model_features(df, cfg):
+    """Allowlist predictors so coverage counts, dates and targets cannot silently enter ML."""
+    features = cfg["features"]["predictors"]
+    target, group = cfg["modeling"]["target"], cfg["modeling"]["group_column"]
+    bad = forbidden_features(features, cfg["features"]["exclude_from_model"] + [target, group])
+    if not features or len(set(features)) != len(features) or bad:
+        raise ValueError(f"Invalid or leaky predictor list: {features}")
+    required = features + [target, "unit_id", "scene_id", "date"]
+    if group != "unit_id":
+        required.append(group)
+    missing = set(required) - set(df.columns)
+    if missing:
+        raise ValueError(f"Missing columns: {sorted(missing)}")
+    if df[required].isna().any().any() or not np.isfinite(df[features + [target]]).all().all():
+        raise ValueError("Training columns contain missing or non-finite values")
+    # Distinct units can share a holdout group (e.g. block groups in one tract).
+    if df.duplicated(["unit_id", "scene_id"]).any():
+        raise ValueError("Duplicate spatial unit / scene observations")
     return features
 
 
