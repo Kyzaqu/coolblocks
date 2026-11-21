@@ -6,6 +6,7 @@ study_area:
   place_geoid: "0643000"
   county_fips: "037"
 landsat:
+  stac_url: https://planetarycomputer.microsoft.com/api/stac/v1
   collection: landsat-c2-l2
   scene_ids:
     - LC08_L2SP_041036_20230712_02_T1
