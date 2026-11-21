@@ -1,26 +1,31 @@
 .RECIPEPREFIX = >
-.PHONY: setup data features train eval app test lint
+PYTHON ?= .venv/bin/python
+.PHONY: setup setup-conda data features train eval app test lint
 
 setup:
+> python3 -m venv .venv
+> $(PYTHON) -m pip install -e .
+
+setup-conda:
 > conda env create -f environment.yml || conda env update -f environment.yml
 
 data:
-> python -m coolblocks.data.download --config configs/config.yaml
+> $(PYTHON) -m coolblocks.data.download --config configs/config.yaml
 
 features:
-> python -m coolblocks.features.build --config configs/config.yaml
+> $(PYTHON) -m coolblocks.features.build --config configs/config.yaml
 
 train:
-> python -m coolblocks.models.train --config configs/config.yaml
+> $(PYTHON) -m coolblocks.models.train --config configs/config.yaml
 
 eval:
-> python -m coolblocks.evaluation.run_eval --config configs/config.yaml
+> $(PYTHON) -m coolblocks.evaluation.run_eval --config configs/config.yaml
 
 app:
-> streamlit run app/streamlit_app.py
+> $(PYTHON) -m streamlit run app/streamlit_app.py
 
 test:
-> pytest
+> $(PYTHON) -m pytest
 
 lint:
-> ruff check src tests app
+> $(PYTHON) -m ruff check src tests app

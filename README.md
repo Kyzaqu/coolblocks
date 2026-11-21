@@ -36,9 +36,10 @@ Landsat 8/9 + NLCD + Census + CDC SVI
 ```
 
 ## Quickstart
+Install standalone Python 3.11 or newer. From the project root:
+
 ```bash
-conda env create -f environment.yml
-conda activate coolblocks
+make setup      # create .venv and install the project and dependencies
 
 make data       # download + cloud-mask Landsat, NLCD, Census, SVI   (TODO: implement)
 make features   # build data/processed/features.parquet               (TODO: implement)
@@ -46,6 +47,35 @@ make train      # spatial-CV model comparison -> results/
 make app        # launch the Streamlit map
 make test       # pytest
 ```
+The Makefile uses `.venv/bin/python` directly, so activating the environment is optional.
+The pip dependency list is declared in `pyproject.toml`.
+
+Without Make (Linux/macOS):
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e .
+python -m streamlit run app/streamlit_app.py
+```
+
+On Windows, use `py -3 -m venv .venv` and activate with
+`.venv\Scripts\Activate.ps1` in PowerShell, then run the same install and launch commands.
+
+Development defaults to venv and pip. Conda remains available as an alternative:
+
+```bash
+make setup-conda  # create or update the environment from environment.yml
+conda activate coolblocks
+make app PYTHON=python
+make test PYTHON=python
+```
+
+Use `PYTHON=python` with other Make commands when using Conda so they use the
+active environment. Without Make, run `conda env create -f environment.yml`,
+activate it, then run `python -m streamlit run app/streamlit_app.py`.
+When changing dependencies, keep `pyproject.toml` and `environment.yml` in sync.
+
 Settings (study area, dates, seeds, weights) live in [configs/config.yaml](configs/config.yaml).
 
 ## Data
