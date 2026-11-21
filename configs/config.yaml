@@ -3,20 +3,27 @@ seed: 42
 
 study_area:
   name: Long Beach, CA
-  # Rough bounding box (lon_min, lat_min, lon_max, lat_max). Verify against the
-  # official city boundary (Census TIGER "Places") before using it for real.
-  bbox: [-118.25, 33.73, -118.07, 33.89]
-  unit: block_group        # block_group | tract | pixel_grid
+  place_name: Long Beach       # matches NAME in the Census TIGER "place" file
+  unit: block_group
   state_fips: "06"
-  county_fips: "037"       # Los Angeles County
+  county_fips: "037"           # Los Angeles County
+  tiger_year: 2023
+  min_land_fraction: 0.5       # drop block groups that are mostly water
+  # Fallback bounding box (lon_min, lat_min, lon_max, lat_max); the pipeline normally uses the
+  # bounds of the selected block groups instead.
+  bbox: [-118.25, 33.73, -118.07, 33.89]
 
 landsat:
+  stac_url: https://planetarycomputer.microsoft.com/api/stac/v1
   collection: landsat-c2-l2
   platforms: [landsat-8, landsat-9]
-  months: [6, 7, 8, 9]     # summer only
+  months: [6, 7, 8, 9]         # summer only
   years: [2021, 2022, 2023, 2024]
-  max_cloud_cover: 20      # percent, scene level
-  target_band: lwir11      # surface temperature band (Collection 2 Level 2)
+  max_cloud_cover: 20          # percent, scene level
+  epsg: 32611                  # UTM zone 11N (covers Long Beach)
+  resolution: 30               # metres
+  min_clear_fraction: 0.5      # drop (unit, scene) rows with fewer usable pixels than this
+  mask_water: true             # exclude water pixels (NDWI > 0) from unit averages
 
 features:
   indices: [ndvi, ndbi, ndwi]
@@ -25,12 +32,13 @@ features:
 
 modeling:
   target: lst_celsius
-  group_column: unit_id    # spatial holdout is done by this column
+  # unit_id  = hold out whole block groups
+  # tract_id = hold out whole tracts (stricter: block groups in a tract share SVI and are neighbors)
+  group_column: unit_id
   n_splits: 5
   models: [mean_baseline, linear, random_forest, lightgbm]
 
 prioritization:
-  # weights are normalized inside the scoring function; the app lets users edit them
   weights:
     lst_mean: 0.5
     svi_overall: 0.3
