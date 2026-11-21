@@ -1,12 +1,17 @@
-# Data
+# Local data
 
-Nothing in `raw/`, `interim/` or `processed/` is committed (see `.gitignore`). Recreate it with `make data features`.
+From the repository root, run `make data features train eval`. Raw and processed data are ignored by
+Git. No fabricated observations or fallback sample dataset are used by the app.
 
-| Source | Resolution | Date range | Download method | Notes |
-|---|---|---|---|---|
-| Landsat 8/9 C2 L2 (ST_B10, SR bands, QA_PIXEL) | 30 m (thermal resampled from 100 m) | TODO | Planetary Computer STAC | summer, low cloud |
-| NLCD impervious / tree canopy | 30 m | TODO | MRLC | check product year |
-| Census TIGER boundaries + ACS | block group / tract | TODO | data.census.gov | |
-| CDC/ATSDR SVI | tract | TODO | ATSDR | |
+- `raw/place.zip`, `raw/tract.zip`: Census 2023 California cartographic boundaries.
+- `raw/city.geojson`: selected Long Beach place polygon.
+- `raw/<scene_id>/`: unsigned STAC metadata and seven cropped, unscaled Landsat band TIFFs.
+- `raw/MANIFEST.json`: source URLs, scene times, and SHA-256 checksums.
+- `processed/features.parquet`: one row per accepted tract/date with observed LST and spectral means.
+- `processed/coverage.csv`: accepted and rejected tract/dates, pixel counts, valid fractions.
+- `processed/feature_metadata.json`: settings and source/feature fingerprints.
+- `processed/units.geojson`: city-clipped tracts, with stable tract GEOIDs as `unit_id`.
+- `processed/neighborhoods.geojson`: latest date's joined observations and model outputs.
 
-Record every download in `raw/MANIFEST.json` (URL, retrieval date, version).
+See [the data sheet](../docs/data_sheet.md) for sources and quality rules and
+[the README](../README.md) for output labels and commands. Keep GEOIDs as strings when reading CSVs.
