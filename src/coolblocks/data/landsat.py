@@ -133,7 +133,7 @@ def run(cfg: dict) -> pd.DataFrame:
 
     stack = stackstac.stack(
         items, assets=ASSETS, epsg=lc["epsg"], resolution=lc["resolution"],
-        bounds_latlon=bbox, rescale=False, fill_value=np.nan, dtype="float32",
+        bounds_latlon=bbox, rescale=False, fill_value=np.nan, dtype="float64",
     )
     height, width = stack.sizes["y"], stack.sizes["x"]
     transform = stack.attrs["transform"]

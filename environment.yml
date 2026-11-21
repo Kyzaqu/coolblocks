@@ -10,10 +10,13 @@ dependencies:
   - rasterio
   - shapely
   - scikit-learn
-  - joblib
+  - lightgbm
+  - shap
+  - matplotlib
   - pyyaml
   - pystac-client
   - planetary-computer
+  - stackstac
   - streamlit
   - folium
   - pytest
