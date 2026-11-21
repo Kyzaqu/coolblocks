@@ -1,0 +1,43 @@
+# Single source of truth for study area, dates, seeds and paths.
+seed: 42
+
+study_area:
+  name: Long Beach, CA
+  # Rough bounding box (lon_min, lat_min, lon_max, lat_max). Verify against the
+  # official city boundary (Census TIGER "Places") before using it for real.
+  bbox: [-118.25, 33.73, -118.07, 33.89]
+  unit: block_group        # block_group | tract | pixel_grid
+  state_fips: "06"
+  county_fips: "037"       # Los Angeles County
+
+landsat:
+  collection: landsat-c2-l2
+  platforms: [landsat-8, landsat-9]
+  months: [6, 7, 8, 9]     # summer only
+  years: [2021, 2022, 2023, 2024]
+  max_cloud_cover: 20      # percent, scene level
+  target_band: lwir11      # surface temperature band (Collection 2 Level 2)
+
+features:
+  indices: [ndvi, ndbi, ndwi]
+  static_layers: [nlcd_impervious, nlcd_tree_canopy]
+  exclude_from_model: [lwir11, st_b10]   # raw thermal bands would leak the target
+
+modeling:
+  target: lst_celsius
+  group_column: unit_id    # spatial holdout is done by this column
+  n_splits: 5
+  models: [mean_baseline, linear, random_forest, lightgbm]
+
+prioritization:
+  # weights are normalized inside the scoring function; the app lets users edit them
+  weights:
+    lst_mean: 0.5
+    svi_overall: 0.3
+    canopy_deficit: 0.2
+
+paths:
+  raw: data/raw
+  interim: data/interim
+  processed: data/processed
+  results: results
