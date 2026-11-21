@@ -14,8 +14,4 @@ def build_model(name: str, seed: int = 42):
         return RandomForestRegressor(
             n_estimators=300, min_samples_leaf=3, n_jobs=-1, random_state=seed
         )
-    if name == "lightgbm":
-        from lightgbm import LGBMRegressor
-
-        return LGBMRegressor(n_estimators=500, learning_rate=0.05, random_state=seed, verbose=-1)
     raise ValueError(f"Unknown model: {name}")

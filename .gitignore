@@ -7,11 +7,15 @@ __pycache__/
 .ruff_cache/
 *.egg-info/
 .DS_Store
-# data: keep folders and READMEs only
+# Keep raw/intermediate data local; include only the small demo boundaries.
 data/raw/*
 data/interim/*
 data/processed/*
 !data/**/.gitkeep
 !data/README.md
-# small sample for the demo app can be force-added: git add -f data/processed/sample_*.parquet
+!data/processed/units.geojson
 models/*.joblib
+
+results/*.joblib
+results/*.parquet
+!results/predictions.parquet

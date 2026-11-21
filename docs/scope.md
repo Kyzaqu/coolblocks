@@ -1,14 +1,23 @@
-# Scope
+# MVP scope
 
-## Decisions to make (conflicts found in the Phase 1 report)
-- [ ] **Scenario tool / brief generator:** Section 5 lists "cooling intervention simulations" and
-      "automated report generation" as out of scope, but the milestones list a "scenario tool and brief
-      generator" in the MVP. Decide and make this file, the README and the report agree.
-- [ ] **Spatial unit:** block group, tract, or pixel grid (set in configs/config.yaml).
-- [ ] **Four evaluations:** name them in docs/evaluation_plan.md.
+## Implemented
 
-## In scope
-- Long Beach pilot, trained LST regression model, interactive map, neighborhood comparison, configurable prioritization.
+- Long Beach city-clipped Census tracts as explicit neighborhood-scale proxies.
+- Three pinned public Landsat summer 2023 scenes and public Census boundaries.
+- Quality masking, coverage filtering, mean LST and three spectral predictors.
+- Mean/linear/Random Forest comparison using existing whole-tract spatial CV.
+- Saved held-out predictions, final fitted model, source/checksum and fold audit metadata.
+- Streamlit prediction/observation/error maps, click inspection, date selection, and two-tract comparison.
+- Bundled real-data boundaries and predictions for a runnable demonstration without imagery downloads.
+- Reproducible local commands, automated workflow checks, and documented scientific limitations.
+
+## Deferred
+
+NLCD, ACS/SVI ingestion and vulnerability prioritization; LightGBM/SHAP; named-neighborhood
+boundaries; temporal holdout; field and stakeholder evaluation; hosted deployment.
+The original prioritization module remains available but is not connected to this MVP.
 
 ## Out of scope
-- Real-time forecasting; air temperature / personal exposure estimates; causal claims.
+
+Real-time or weather forecasting, air-temperature/exposure estimates, causal intervention simulation,
+automated planning briefs, or unsupported health/equity/investment recommendations.

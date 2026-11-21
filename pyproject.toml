@@ -7,6 +7,24 @@ name = "coolblocks"
 version = "0.1.0"
 description = "AI-powered neighborhood land surface temperature analysis (Long Beach, CA pilot)"
 requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+    "pandas",
+    "pyarrow",
+    "geopandas",
+    "rasterio",
+    "shapely",
+    "scikit-learn",
+    "joblib",
+    "pyyaml",
+    "pystac-client",
+    "planetary-computer",
+    "streamlit",
+    "folium",
+    "streamlit-folium",
+    "pytest",
+    "ruff",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
