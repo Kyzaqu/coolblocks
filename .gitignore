@@ -15,3 +15,6 @@ data/processed/*
 !data/README.md
 # small sample for the demo app can be force-added: git add -f data/processed/sample_*.parquet
 models/*.joblib
+
+results/*.joblib
+results/*.parquet

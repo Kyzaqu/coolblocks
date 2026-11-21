@@ -1,41 +1,26 @@
-# Single source of truth for study area, dates, seeds and paths.
+# Small, pinned summer-2023 proof of concept; all paths are relative to project root.
 seed: 42
-
 study_area:
   name: Long Beach, CA
-  # Rough bounding box (lon_min, lat_min, lon_max, lat_max). Verify against the
-  # official city boundary (Census TIGER "Places") before using it for real.
-  bbox: [-118.25, 33.73, -118.07, 33.89]
-  unit: block_group        # block_group | tract | pixel_grid
-  state_fips: "06"
-  county_fips: "037"       # Los Angeles County
-
+  unit: tract
+  place_geoid: "0643000"
+  county_fips: "037"
 landsat:
   collection: landsat-c2-l2
-  platforms: [landsat-8, landsat-9]
-  months: [6, 7, 8, 9]     # summer only
-  years: [2021, 2022, 2023, 2024]
-  max_cloud_cover: 20      # percent, scene level
-  target_band: lwir11      # surface temperature band (Collection 2 Level 2)
-
+  scene_ids:
+    - LC08_L2SP_041036_20230712_02_T1
+    - LC09_L2SP_041036_20230805_02_T1
+    - LC08_L2SP_041036_20230829_02_T1
 features:
-  indices: [ndvi, ndbi, ndwi]
-  static_layers: [nlcd_impervious, nlcd_tree_canopy]
-  exclude_from_model: [lwir11, st_b10]   # raw thermal bands would leak the target
-
+  predictors: [ndvi, ndbi, ndwi]
+  exclude_from_model: [lwir11, st_b10, lst_celsius]
+  min_valid_pixels: 30
+  min_valid_fraction: 0.5
 modeling:
   target: lst_celsius
-  group_column: unit_id    # spatial holdout is done by this column
+  group_column: unit_id
   n_splits: 5
-  models: [mean_baseline, linear, random_forest, lightgbm]
-
-prioritization:
-  # weights are normalized inside the scoring function; the app lets users edit them
-  weights:
-    lst_mean: 0.5
-    svi_overall: 0.3
-    canopy_deficit: 0.2
-
+  models: [mean_baseline, linear, random_forest]
 paths:
   raw: data/raw
   interim: data/interim
