@@ -70,8 +70,8 @@ _To be filled in after Phase 3 evaluations._
 - Relationships learned by the model are associations, not causal effects.
 - Predictions may not generalize to unseen neighborhoods or dates; see the model card.
 
-## Team and timeline
-TODO: names and roles. Milestones: PoC Oct 30, MVP Nov 13, Phase 2 Nov 20, Phase 3 Dec 11.
+## Team
+Kevin Luu, Fristine Sok, Eric Lee, Yasasvi Kotagiri
 
 ## References
 See [docs/references.md](docs/references.md).
