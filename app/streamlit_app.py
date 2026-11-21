@@ -27,7 +27,7 @@ st.write(
     "Compare the model's predictions with satellite observations for the same date."
 )
 st.caption(
-    "These are same-date estimates, not future temperature forecasts. "
+    "These are precomputed same-date estimates, not future temperature forecasts. "
     "Surface temperature describes the ground and rooftops—not the air temperature people feel."
 )
 st.info(
@@ -41,7 +41,10 @@ required = [
     RESULTS / "run_metadata.json",
 ]
 if not all(path.exists() for path in required):
-    st.warning("Data outputs are missing. From the project root, run `make data features train`.")
+    st.warning(
+        "The bundled demo files are missing. Restore them from Git, or regenerate them "
+        "from the project root with `make data features train`."
+    )
     st.stop()
 
 

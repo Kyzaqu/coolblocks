@@ -7,8 +7,9 @@
 - Quality masking, coverage filtering, mean LST and three spectral predictors.
 - Mean/linear/Random Forest comparison using existing whole-tract spatial CV.
 - Saved held-out predictions, final fitted model, source/checksum and fold audit metadata.
-- Streamlit observation/estimate maps, date selection, and two-tract comparison.
-- Reproducible local commands, tests, scientific limitations, and Phase 2 progress report.
+- Streamlit prediction/observation/error maps, click inspection, date selection, and two-tract comparison.
+- Bundled real-data boundaries and predictions for a runnable demonstration without imagery downloads.
+- Reproducible local commands, automated workflow checks, and documented scientific limitations.
 
 ## Deferred
 

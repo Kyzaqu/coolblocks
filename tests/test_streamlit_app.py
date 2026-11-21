@@ -1,8 +1,4 @@
-"""UI integration checks use existing real outputs, with simulated map click events.
-
-Run `make data features train` first for the output-dependent checks. CI can still
-check missing-data guidance without downloading satellite rasters.
-"""
+"""UI integration checks use the bundled real outputs and simulated map click events."""
 
 from pathlib import Path
 
@@ -23,8 +19,7 @@ def live_app(monkeypatch):
         ROOT / "results/predictions.parquet",
         ROOT / "results/run_metadata.json",
     ]
-    if not all(path.exists() for path in paths):
-        pytest.skip("Real-output UI checks require make data features train")
+    assert all(path.exists() for path in paths), "Bundled demo outputs are missing"
     captured, event = [], {}
 
     def render_map(map_view, **kwargs):

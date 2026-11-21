@@ -7,40 +7,138 @@ The current dataset contains **338 tract/date observations across 114 city-clipp
 on July 12, August 5, and August 29, 2023. Census tracts are neighborhood proxies, not named
 neighborhoods. Surface temperature is **not air temperature, heat index, or personal exposure**.
 
-## Run locally
+## A. Run the included demonstration
 
-Use Python 3.11 or newer, from the repository root:
+Use Python **3.11 or newer** (verified on Linux with Python 3.12). From a terminal:
 
 ```bash
-make setup
-make data       # Internet: public Census boundaries and clipped Landsat rasters
-make features   # Quality masking and tract aggregation
-make train      # Spatial CV, final model, predictions, and map-ready output
-make eval       # Independently check held-out metrics; summarize errors
-make app        # Open the URL printed by Streamlit
+git clone https://github.com/Kyzaqu/coolblocks.git
+cd coolblocks
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e .
+python -m streamlit run app/streamlit_app.py
 ```
 
-The Makefile uses `.venv/bin/python`; activation is optional. Existing Conda users can run
-`make setup-conda`, activate `coolblocks`, and use `PYTHON=python` with Make commands.
-Windows users can create a venv with `py -3 -m venv .venv`, activate it, install with
-`python -m pip install -e .`, and run the modules listed in the Makefile directly.
+Open the local URL printed by Streamlit, normally `http://localhost:8501`.
+No Landsat download, model training, account, or API key is needed to run this demonstration.
+Dependency installation needs Internet access; browser map tiles and map JavaScript/CSS also load
+from external services. This is not a fully offline browser application.
 
-The first download needs network access to Census, Planetary Computer, and Azure Blob Storage.
-Planetary Computer signing is automatic; no account or secret is configured. Raw rasters are
-cached locally. After downloading, `make features train eval` works offline. The interactive
-basemap uses OpenStreetMap tiles and needs browser network access. To replace a cached source,
-remove its local cached file and rerun `make data`; the manifest records checksums.
+If you already cloned the repository, the Make equivalent is `make setup` followed by `make app`.
+The Makefile uses `.venv/bin/python`, so activation is optional. On Windows, use
+`py -3 -m venv .venv`, activate with `.venv\Scripts\Activate.ps1` in PowerShell, then use the
+same `python -m pip` and `python -m streamlit` commands. Conda is optional: `make setup-conda`,
+`conda activate coolblocks`, then `make app PYTHON=python`.
+
+### What is included
+
+The demo uses the existing application and its normal file paths:
+
+| Included file | Purpose | Approximate size |
+|---|---|---:|
+| `data/processed/units.geojson` | 114 real Census tracts clipped to Long Beach | 64 KB |
+| `results/predictions.parquet` | 338 observed/predicted tract-date rows and associated features | 32 KB |
+| `results/run_metadata.json` | Source provenance, configuration, package versions, metrics, fold audit | 28 KB |
+
+These are actual outputs of `make data features train`, not fabricated sample data. The two small
+boundary/prediction files are explicitly included in Git; there is no duplicate demo dataset or
+separate demo application. Published CSV evaluation outputs are also included. Raw imagery,
+intermediate features, and the serialized model remain local and are recreated by the full workflow.
+
+### Try a sample result
+
+1. Keep **Predicted temperature** selected and choose **Aug 29, 2023**.
+2. Click a colored tract, or use the details dropdown to choose **Census tract 5440.02**.
+3. The rounded results are predicted **48.4°C**, observed **46.5°C**, and error **+1.9°C**.
+   These are historical surface temperatures, not current air temperatures.
+4. Switch to **Observed temperature** and **Prediction error**, then use **Compare this tract**
+   and choose a second tract under **Tract B**.
+5. Expand **About the model, data quality, and limitations** for evaluation, coverage,
+   spectral indices, limitations, and the selected date's CSV download.
+
+Error in the app/download is **predicted minus observed**. Evaluation CSVs instead label their
+signed residual as **observed minus predicted**; MAE and RMSE are unaffected by that sign convention.
+
+## B. Reproduce the ML experiment
+
+After installation, run these commands **from the repository root**, in order:
+
+```bash
+make data       # Download public Census boundaries and cropped Landsat rasters
+make features   # Mask unsuitable pixels and aggregate by tract/date
+make train      # Compare models with spatial CV, refit, and save all predictions
+make eval       # Check saved held-out scores and summarize tract/date errors
+```
+
+Without Make, use the same active virtual environment:
+
+```bash
+python -m coolblocks.data.download --config configs/config.yaml
+python -m coolblocks.features.build --config configs/config.yaml
+python -m coolblocks.models.train --config configs/config.yaml
+python -m coolblocks.evaluation.run_eval --config configs/config.yaml
+```
+
+The download needs Census, Planetary Computer, and Azure Blob Storage access; signing of public
+Landsat asset URLs is automatic. Three fixed scene IDs, coverage thresholds, the predictor list,
+model list, seed, and relative paths are in [configs/config.yaml](configs/config.yaml).
+Changing the study area requires a new raw cache directory. After downloading,
+`make features train eval` runs without network access. Running this workflow regenerates the
+included demo outputs at their existing paths; it does not create another copy of the dataset.
+
+The original environment and source fingerprints are recorded in
+[results/run_metadata.json](results/run_metadata.json). Dependencies are declared in
+[pyproject.toml](pyproject.toml) and [environment.yml](environment.yml). Versions are not locked:
+use the recorded versions on Python 3.12 when investigating numerical differences. Upstream
+product changes or package/platform differences may prevent bit-for-bit reproduction; compare
+row counts, tract/date keys, and numeric values within tolerance, not only binary file hashes.
+
+To recheck the included evaluation without downloading or training, run `make eval`.
+To run verification:
 
 ```bash
 make test lint
 ```
 
-Tests use explicitly artificial fixtures to check software behavior; reported scientific results
-come exclusively from the public environmental data. CI runs tests and lint without downloading scenes.
-App integration checks in `tests/test_streamlit_app.py` use the existing real outputs and simulated
-map clicks; they skip when local outputs are absent. The missing-data UI check always runs.
+The suite checks the bundled real outputs against published predictions/metrics and exercises
+all dates/views, tract inspection, and comparisons with simulated map clicks. These checks run
+on a clean checkout without imagery downloads. Small artificial test fixtures are used only for
+software behavior tests, never as reported environmental results. Browser interaction tests do
+not substitute for a visual check of external tile/CDN availability.
+
+## Submission verification
+
+Verified on Linux / Python 3.12.3 using a clean tracked-file checkout and a new virtual environment:
+
+- `make setup` and `pip check` succeed; no additional packages or services are required.
+- `make test lint`: **27 tests pass, none skipped**, and lint passes, using only included outputs.
+- The Streamlit server returns HTTP 200 for its health endpoint and application page. AppTest
+  exercises all three dates/views, simulated tract clicks, inspection, and two-tract comparison.
+- Fresh `make data features train eval` reproduces 338 rows, 114 geometries, spatial folds,
+  and numeric prediction-table values/pooled metrics within `1e-12` of the included run. Fresh
+  Census archive and cropped Landsat asset checksums match the original source manifest.
+- Credential-pattern and local documentation-link checks found no issues.
+
+A dependency emits a Pydantic deprecation warning; it does not fail the checks. Browser appearance
+and external tile/CDN availability were not visually verified. These checks are separate from the
+scientific evaluation below; they do not establish additional predictive accuracy.
 
 ## How it works
+
+```mermaid
+flowchart LR
+    Sources["Public Landsat + Census"] --> Prepare["download.py + build.py"]
+    Prepare --> Features["Tract/date feature table"]
+    Features --> Train["train.py: spatial CV + final fit"]
+    Train --> Outputs["Predictions, metrics, run metadata"]
+    Outputs --> App["Streamlit map + tract comparison"]
+    Prepare --> Boundaries["Clipped tract polygons"]
+    Boundaries --> App
+    Outputs --> Verify["run_eval.py: verify held-out metrics"]
+```
+
+The included outputs enter directly at the map stage; reproduction starts at public source data.
 
 1. [`download.py`](src/coolblocks/data/download.py) resolves three scene IDs pinned in
    [`config.yaml`](configs/config.yaml), downloads Census 2023 generalized place/tract boundaries,
@@ -86,8 +184,7 @@ these results do not establish a meaningful superiority. Low R² indicates limit
 explanation. The same folds are used for selection and reporting, so this is exploratory evaluation.
 
 See [fold metrics](results/cv_metrics_by_fold.csv), [pooled metrics](results/pooled_oof_metrics.csv),
-[run provenance and fold memberships](results/run_metadata.json), and the
-[Phase 2 progress report](docs/phase2_progress_report.md). Pooled metrics combine all held-out rows;
+[run provenance and fold memberships](results/run_metadata.json). Pooled metrics combine all held-out rows;
 they differ from averaging fold scores. No future-date accuracy has been measured.
 
 ## Outputs and temperature labels
@@ -110,10 +207,9 @@ they differ from averaging fold scores. No future-date accuracy has been measure
 its `prediction_type` is **fitted_in_sample** and it is not used to report accuracy or shown on the map.
 All estimates use same-date satellite predictors; they are not forecasts.
 
-Raw data, processed datasets, and binary model/prediction files are ignored by Git. Small CSV
-results and run metadata are retained for review. No server, database, or extra service is needed.
-Dependencies are declared in `pyproject.toml` and `environment.yml`; the actual training package
-versions are recorded in the run metadata. Exact cross-version numerical equality is not guaranteed.
+Only the small demo boundaries and prediction table are included from generated geographic/binary
+outputs. Raw imagery, other processed datasets, and the serialized model are ignored by Git.
+Small CSV results and run metadata are retained for review. There is no database or hosted backend.
 
 ## Scientific boundaries
 
