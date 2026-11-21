@@ -48,7 +48,7 @@ def model_features(df, cfg):
 def run_cv(df: pd.DataFrame, cfg: dict) -> pd.DataFrame:
     m = cfg["modeling"]
     target, group = m["target"], m["group_column"]
-    features = feature_columns(df, cfg)
+    features = model_features(df, cfg)
     print(f"Target: {target} | group: {group} | features: {features}")
 
     rows = []
